@@ -4,11 +4,18 @@
 	"version": "0.16.1",
 	"license": "MIT",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"build": "bun build.rollup.ts",
-		"dts": "bun build.dts.ts"
+		"dts": "bun build.dts.ts",
+		"rspack": "node --import @swc-node/register/esm-register build.rspack.ts",
+		"clean": "bun clean.ts"
 	},
 	"devDependencies": {
+		"@rspack/cli": "1.0.0-alpha.2",
+		"@rspack/core": "1.0.0-alpha.2",
+		"@swc-node/register": "^1.10.3",
+		"@swc/helpers": "^0.5.11",
 		"@babel/core": "^7.24.7",
 		"@babel/helper-module-imports": "^7.24.7",
 		"@babel/plugin-transform-optional-catch-binding": "^7.24.7",

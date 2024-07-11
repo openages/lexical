@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
-		"target": "ES2019",
+		"target": "ESNext",
 		"lib": ["esnext", "dom", "dom.iterable"],
 		"module": "esnext",
 		"jsx": "react-jsx",
-		"moduleResolution": "Node",
+		"moduleResolution": "bundler",
 		"downlevelIteration": true,
 		"noEmit": true,
 		"strict": true,
@@ -12,7 +12,13 @@
 		"typeRoots": ["node_modules/@types", "libdefs/globals"],
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
+		"customConditions": ["module"],
 		"allowJs": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"resolvePackageJsonImports": true,
+		"resolvePackageJsonExports": true,
 		"paths": {
 			"lexical": ["./packages/lexical/src/index.ts"],
 			"@lexical/clipboard": ["./packages/lexical-clipboard/src/index.ts"],

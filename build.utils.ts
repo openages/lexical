@@ -1,11 +1,14 @@
-import { sync } from 'fast-glob'
-import { readFileSync, removeSync } from 'fs-extra'
+import glob from 'fast-glob'
+import fs from 'fs-extra'
 import { resolve } from 'path'
 
-import lexical_react_package_json from './packages/lexical-react/package.json'
-import shared_package_json from './packages/shared/package.json'
-
 import type { RollupOptions } from 'rollup'
+
+const { sync } = glob
+const { readFileSync, removeSync } = fs
+
+const lexical_react_package_json = JSON.parse(readFileSync('./packages/lexical-react/package.json').toString())
+const shared_package_json = JSON.parse(readFileSync('./packages/shared/package.json').toString())
 
 export const modules = [
 	'lexical',

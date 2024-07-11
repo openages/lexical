@@ -1,4 +1,6 @@
-import { sync } from 'fast-glob'
+import './_esm_'
+
+import glob from 'fast-glob'
 import { resolve } from 'path'
 import { rollup } from 'rollup'
 
@@ -12,6 +14,8 @@ import plugin_terser from '@rollup/plugin-terser'
 import { clean, external, modules, onwarn, split_modules } from './build.utils'
 
 import type { RollupOptions } from 'rollup'
+
+const { sync } = glob
 
 const extensions = ['.js', '.jsx', '.ts', '.tsx']
 const externalLiveBindings = false
@@ -71,7 +75,7 @@ const buildModule = async (modules: Array<string>) => {
 				externalLiveBindings
 			})
 
-			console.log(name, ' - dev build')
+			console.log(`${name} [dev] `)
 		})
 
 		rollup({
@@ -88,7 +92,7 @@ const buildModule = async (modules: Array<string>) => {
 				externalLiveBindings
 			})
 
-			console.log(name, ' - prod build')
+			console.log(`${name} [prod]`)
 		})
 	})
 }

@@ -1,9 +1,12 @@
+import './_esm_'
 
 import { exec } from 'child-process-promise'
-import { copySync, removeSync } from 'fs-extra'
+import fs from 'fs-extra'
 import { resolve } from 'path'
 
 import { modules, split_modules } from './build.utils'
+
+const { copySync, removeSync } = fs
 
 await exec('tsc -p ./tsconfig.build.json')
 
