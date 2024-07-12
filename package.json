@@ -12,8 +12,8 @@
 		"clean": "bun clean.ts"
 	},
 	"devDependencies": {
-		"@rspack/cli": "1.0.0-alpha.2",
-		"@rspack/core": "1.0.0-alpha.2",
+		"@rspack/cli": "1.0.0-alpha.3",
+		"@rspack/core": "1.0.0-alpha.3",
 		"@swc-node/register": "^1.10.3",
 		"@swc/helpers": "^0.5.11",
 		"@babel/core": "^7.24.7",
