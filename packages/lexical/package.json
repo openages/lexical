@@ -19,5 +19,5 @@
 			}
 		}
 	},
-	"dependencies": { "nanoid": "^5.0.7", "shared": "workspace:*" }
+	"dependencies": { "shared": "workspace:*" }
 }
