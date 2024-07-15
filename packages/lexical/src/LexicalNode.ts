@@ -41,6 +41,8 @@ export type NodeMap = Map<NodeKey, LexicalNode>
 export type SerializedLexicalNode = {
 	type: string
 	version: number
+	key?: string
+	node_key?: string
 }
 
 export function $removeNode(nodeToRemove: LexicalNode, restoreSelection: boolean, preserveEmptyParent?: boolean): void {

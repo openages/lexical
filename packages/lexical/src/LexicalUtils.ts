@@ -75,14 +75,12 @@ export const id = (length?: number) => {
 	return result
 }
 
-export const emptyFunction = () => {
-	return
+export const $setImportNode = (key: string, node: LexicalNode) => {
+	getActiveEditorState()._nodeMap.set(key, node)
 }
 
-let keyCounter = 1
-
-export function resetRandomKey(): void {
-	keyCounter = 1
+export const emptyFunction = () => {
+	return
 }
 
 export function generateRandomKey(): string {
