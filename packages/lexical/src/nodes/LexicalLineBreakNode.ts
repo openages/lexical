@@ -11,9 +11,7 @@ import type { DOMConversionMap, DOMConversionOutput, NodeKey, SerializedLexicalN
 
 import { DOM_TEXT_TYPE } from '../LexicalConstants'
 import { LexicalNode } from '../LexicalNode'
-import { $applyNodeReplacement } from '../LexicalUtils'
-
-export type SerializedLineBreakNode = SerializedLexicalNode
+import { $applyNodeReplacement, $setImportNode } from '../LexicalUtils'
 
 /** @noInheritDoc */
 export class LineBreakNode extends LexicalNode {
@@ -56,12 +54,17 @@ export class LineBreakNode extends LexicalNode {
 		}
 	}
 
-	static importJSON(serializedLineBreakNode: SerializedLineBreakNode): LineBreakNode {
-		return $createLineBreakNode()
+	static importJSON(serializedNode: SerializedLexicalNode, update?: boolean): LineBreakNode {
+		const node = $createLineBreakNode(serializedNode.key)
+
+		if (!update) $setImportNode(serializedNode.key!, node)
+
+		return node
 	}
 
 	exportJSON(): SerializedLexicalNode {
 		return {
+			...super.exportJSON(),
 			type: 'linebreak',
 			version: 1
 		}
@@ -72,8 +75,8 @@ function $convertLineBreakElement(node: Node): DOMConversionOutput {
 	return { node: $createLineBreakNode() }
 }
 
-export function $createLineBreakNode(): LineBreakNode {
-	return $applyNodeReplacement(new LineBreakNode())
+export function $createLineBreakNode(key?: string): LineBreakNode {
+	return $applyNodeReplacement(new LineBreakNode(key))
 }
 
 export function $isLineBreakNode(node: LexicalNode | null | undefined): node is LineBreakNode {

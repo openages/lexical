@@ -140,7 +140,7 @@ export class LinkNode extends ElementNode {
 		}
 	}
 
-	static importJSON(serializedNode: SerializedLinkNode | SerializedAutoLinkNode): LinkNode {
+	static importJSON(serializedNode: SerializedLinkNode | SerializedAutoLinkNode, update?: boolean): LinkNode {
 		const node = $createLinkNode(
 			serializedNode.url,
 			{
@@ -151,7 +151,7 @@ export class LinkNode extends ElementNode {
 			serializedNode.key
 		)
 
-		$setImportNode(serializedNode.key, node)
+		if (!update) $setImportNode(serializedNode.key, node)
 
 		node.setFormat(serializedNode.format)
 		node.setIndent(serializedNode.indent)
@@ -351,7 +351,7 @@ export class AutoLinkNode extends LinkNode {
 		return super.updateDOM(prevNode, anchor, config) || prevNode.__isUnlinked !== this.__isUnlinked
 	}
 
-	static importJSON(serializedNode: SerializedAutoLinkNode): AutoLinkNode {
+	static importJSON(serializedNode: SerializedAutoLinkNode, update?: boolean): AutoLinkNode {
 		const node = $createAutoLinkNode(
 			serializedNode.url,
 			{
@@ -363,11 +363,12 @@ export class AutoLinkNode extends LinkNode {
 			serializedNode.key
 		)
 
-		$setImportNode(serializedNode.key, node)
+		if (!update) $setImportNode(serializedNode.key, node)
 
 		node.setFormat(serializedNode.format)
 		node.setIndent(serializedNode.indent)
 		node.setDirection(serializedNode.direction)
+
 		return node
 	}
 

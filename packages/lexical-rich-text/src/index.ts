@@ -219,10 +219,10 @@ export class HeadingNode extends ElementNode {
 		}
 	}
 
-	static importJSON(serializedNode: SerializedHeadingNode): HeadingNode {
+	static importJSON(serializedNode: SerializedHeadingNode, update?: boolean): HeadingNode {
 		const node = $createHeadingNode(serializedNode.tag, serializedNode.key)
 
-		$setImportNode(serializedNode.key, node)
+		if (!update) $setImportNode(serializedNode.key, node)
 
 		node.setFormat(serializedNode.format)
 		node.setIndent(serializedNode.indent)

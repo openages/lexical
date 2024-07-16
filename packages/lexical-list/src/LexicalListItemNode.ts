@@ -6,519 +6,483 @@
  *
  */
 
-import type {ListNode} from './';
+import type { ListNode } from './'
 import type {
-  BaseSelection,
-  DOMConversionMap,
-  DOMConversionOutput,
-  DOMExportOutput,
-  EditorConfig,
-  EditorThemeClasses,
-  LexicalNode,
-  NodeKey,
-  ParagraphNode,
-  RangeSelection,
-  SerializedElementNode,
-  Spread,
-} from 'lexical';
+	BaseSelection,
+	DOMConversionMap,
+	DOMConversionOutput,
+	DOMExportOutput,
+	EditorConfig,
+	EditorThemeClasses,
+	LexicalNode,
+	NodeKey,
+	ParagraphNode,
+	RangeSelection,
+	SerializedElementNode,
+	Spread
+} from 'lexical'
 
 import {
-  addClassNamesToElement,
-  removeClassNamesFromElement,
-} from '@lexical/utils';
-import {
-  $applyNodeReplacement,
-  $createParagraphNode,
-  $isElementNode,
-  $isParagraphNode,
-  $isRangeSelection,
-  ElementNode,
-  LexicalEditor,
-} from 'lexical';
-import invariant from 'shared/invariant';
-import normalizeClassNames from 'shared/normalizeClassNames';
+	$applyNodeReplacement,
+	$createParagraphNode,
+	$isElementNode,
+	$isParagraphNode,
+	$isRangeSelection,
+	$setImportNode,
+	ElementNode,
+	LexicalEditor
+} from 'lexical'
+import invariant from 'shared/invariant'
+import normalizeClassNames from 'shared/normalizeClassNames'
 
-import {$createListNode, $isListNode} from './';
-import {$handleIndent, $handleOutdent, mergeLists} from './formatList';
-import {isNestedListNode} from './utils';
+import { addClassNamesToElement, removeClassNamesFromElement } from '@lexical/utils'
+
+import { $createListNode, $isListNode } from './'
+import { $handleIndent, $handleOutdent, mergeLists } from './formatList'
+import { isNestedListNode } from './utils'
 
 export type SerializedListItemNode = Spread<
-  {
-    checked: boolean | undefined;
-    value: number;
-  },
-  SerializedElementNode
->;
+	{
+		checked: boolean | undefined
+		value: number
+	},
+	SerializedElementNode
+>
 
 /** @noInheritDoc */
 export class ListItemNode extends ElementNode {
-  /** @internal */
-  __value: number;
-  /** @internal */
-  __checked?: boolean;
+	/** @internal */
+	__value: number
+	/** @internal */
+	__checked?: boolean
 
-  static getType(): string {
-    return 'listitem';
-  }
+	static getType(): string {
+		return 'listitem'
+	}
 
-  static clone(node: ListItemNode): ListItemNode {
-    return new ListItemNode(node.__value, node.__checked, node.__key);
-  }
+	static clone(node: ListItemNode): ListItemNode {
+		return new ListItemNode(node.__value, node.__checked, node.__key)
+	}
 
-  constructor(value?: number, checked?: boolean, key?: NodeKey) {
-    super(key);
-    this.__value = value === undefined ? 1 : value;
-    this.__checked = checked;
-  }
+	constructor(value?: number, checked?: boolean, key?: NodeKey) {
+		super(key)
 
-  createDOM(config: EditorConfig): HTMLElement {
-    const element = document.createElement('li');
-    const parent = this.getParent();
-    if ($isListNode(parent) && parent.getListType() === 'check') {
-      updateListItemChecked(element, this, null, parent);
-    }
-    element.value = this.__value;
-    $setListItemThemeClassNames(element, config.theme, this);
-    return element;
-  }
+		this.__value = value === undefined ? 1 : value
+		this.__checked = checked
+	}
 
-  updateDOM(
-    prevNode: ListItemNode,
-    dom: HTMLElement,
-    config: EditorConfig,
-  ): boolean {
-    const parent = this.getParent();
-    if ($isListNode(parent) && parent.getListType() === 'check') {
-      updateListItemChecked(dom, this, prevNode, parent);
-    }
-    // @ts-expect-error - this is always HTMLListItemElement
-    dom.value = this.__value;
-    $setListItemThemeClassNames(dom, config.theme, this);
+	createDOM(config: EditorConfig): HTMLElement {
+		const element = document.createElement('li')
+		const parent = this.getParent()
+		if ($isListNode(parent) && parent.getListType() === 'check') {
+			updateListItemChecked(element, this, null, parent)
+		}
+		element.value = this.__value
+		$setListItemThemeClassNames(element, config.theme, this)
+		return element
+	}
 
-    return false;
-  }
+	updateDOM(prevNode: ListItemNode, dom: HTMLElement, config: EditorConfig): boolean {
+		const parent = this.getParent()
+		if ($isListNode(parent) && parent.getListType() === 'check') {
+			updateListItemChecked(dom, this, prevNode, parent)
+		}
+		// @ts-expect-error - this is always HTMLListItemElement
+		dom.value = this.__value
+		$setListItemThemeClassNames(dom, config.theme, this)
 
-  static transform(): (node: LexicalNode) => void {
-    return (node: LexicalNode) => {
-      invariant($isListItemNode(node), 'node is not a ListItemNode');
-      if (node.__checked == null) {
-        return;
-      }
-      const parent = node.getParent();
-      if ($isListNode(parent)) {
-        if (parent.getListType() !== 'check' && node.getChecked() != null) {
-          node.setChecked(undefined);
-        }
-      }
-    };
-  }
+		return false
+	}
 
-  static importDOM(): DOMConversionMap | null {
-    return {
-      li: () => ({
-        conversion: $convertListItemElement,
-        priority: 0,
-      }),
-    };
-  }
+	static transform(): (node: LexicalNode) => void {
+		return (node: LexicalNode) => {
+			invariant($isListItemNode(node), 'node is not a ListItemNode')
+			if (node.__checked == null) {
+				return
+			}
+			const parent = node.getParent()
+			if ($isListNode(parent)) {
+				if (parent.getListType() !== 'check' && node.getChecked() != null) {
+					node.setChecked(undefined)
+				}
+			}
+		}
+	}
 
-  static importJSON(serializedNode: SerializedListItemNode): ListItemNode {
-    const node = $createListItemNode();
-    node.setChecked(serializedNode.checked);
-    node.setValue(serializedNode.value);
-    node.setFormat(serializedNode.format);
-    node.setDirection(serializedNode.direction);
-    return node;
-  }
+	static importDOM(): DOMConversionMap | null {
+		return {
+			li: () => ({
+				conversion: $convertListItemElement,
+				priority: 0
+			})
+		}
+	}
 
-  exportDOM(editor: LexicalEditor): DOMExportOutput {
-    const element = this.createDOM(editor._config);
-    element.style.textAlign = this.getFormatType();
-    return {
-      element,
-    };
-  }
+	static importJSON(serializedNode: SerializedListItemNode, update?: boolean): ListItemNode {
+		const node = $createListItemNode(undefined, serializedNode.key)
 
-  exportJSON(): SerializedListItemNode {
-    return {
-      ...super.exportJSON(),
-      checked: this.getChecked(),
-      type: 'listitem',
-      value: this.getValue(),
-      version: 1,
-    };
-  }
+		if (!update) $setImportNode(serializedNode.key, node)
 
-  append(...nodes: LexicalNode[]): this {
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i];
+		node.setChecked(serializedNode.checked)
+		node.setValue(serializedNode.value)
+		node.setFormat(serializedNode.format)
+		node.setDirection(serializedNode.direction)
 
-      if ($isElementNode(node) && this.canMergeWith(node)) {
-        const children = node.getChildren();
-        this.append(...children);
-        node.remove();
-      } else {
-        super.append(node);
-      }
-    }
+		return node
+	}
 
-    return this;
-  }
+	exportDOM(editor: LexicalEditor): DOMExportOutput {
+		const element = this.createDOM(editor._config)
+		element.style.textAlign = this.getFormatType()
+		return {
+			element
+		}
+	}
 
-  replace<N extends LexicalNode>(
-    replaceWithNode: N,
-    includeChildren?: boolean,
-  ): N {
-    if ($isListItemNode(replaceWithNode)) {
-      return super.replace(replaceWithNode);
-    }
-    this.setIndent(0);
-    const list = this.getParentOrThrow();
-    if (!$isListNode(list)) {
-      return replaceWithNode;
-    }
-    if (list.__first === this.getKey()) {
-      list.insertBefore(replaceWithNode);
-    } else if (list.__last === this.getKey()) {
-      list.insertAfter(replaceWithNode);
-    } else {
-      // Split the list
-      const newList = $createListNode(list.getListType());
-      let nextSibling = this.getNextSibling();
-      while (nextSibling) {
-        const nodeToAppend = nextSibling;
-        nextSibling = nextSibling.getNextSibling();
-        newList.append(nodeToAppend);
-      }
-      list.insertAfter(replaceWithNode);
-      replaceWithNode.insertAfter(newList);
-    }
-    if (includeChildren) {
-      invariant(
-        $isElementNode(replaceWithNode),
-        'includeChildren should only be true for ElementNodes',
-      );
-      this.getChildren().forEach((child: LexicalNode) => {
-        replaceWithNode.append(child);
-      });
-    }
-    this.remove();
-    if (list.getChildrenSize() === 0) {
-      list.remove();
-    }
-    return replaceWithNode;
-  }
+	exportJSON(): SerializedListItemNode {
+		return {
+			...super.exportJSON(),
+			checked: this.getChecked(),
+			type: 'listitem',
+			value: this.getValue(),
+			version: 1
+		}
+	}
 
-  insertAfter(node: LexicalNode, restoreSelection = true): LexicalNode {
-    const listNode = this.getParentOrThrow();
+	append(...nodes: LexicalNode[]): this {
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i]
 
-    if (!$isListNode(listNode)) {
-      invariant(
-        false,
-        'insertAfter: list node is not parent of list item node',
-      );
-    }
+			if ($isElementNode(node) && this.canMergeWith(node)) {
+				const children = node.getChildren()
+				this.append(...children)
+				node.remove()
+			} else {
+				super.append(node)
+			}
+		}
 
-    if ($isListItemNode(node)) {
-      return super.insertAfter(node, restoreSelection);
-    }
+		return this
+	}
 
-    const siblings = this.getNextSiblings();
+	replace<N extends LexicalNode>(replaceWithNode: N, includeChildren?: boolean): N {
+		if ($isListItemNode(replaceWithNode)) {
+			return super.replace(replaceWithNode)
+		}
+		this.setIndent(0)
+		const list = this.getParentOrThrow()
+		if (!$isListNode(list)) {
+			return replaceWithNode
+		}
+		if (list.__first === this.getKey()) {
+			list.insertBefore(replaceWithNode)
+		} else if (list.__last === this.getKey()) {
+			list.insertAfter(replaceWithNode)
+		} else {
+			// Split the list
+			const newList = $createListNode(list.getListType())
+			let nextSibling = this.getNextSibling()
+			while (nextSibling) {
+				const nodeToAppend = nextSibling
+				nextSibling = nextSibling.getNextSibling()
+				newList.append(nodeToAppend)
+			}
+			list.insertAfter(replaceWithNode)
+			replaceWithNode.insertAfter(newList)
+		}
+		if (includeChildren) {
+			invariant($isElementNode(replaceWithNode), 'includeChildren should only be true for ElementNodes')
+			this.getChildren().forEach((child: LexicalNode) => {
+				replaceWithNode.append(child)
+			})
+		}
+		this.remove()
+		if (list.getChildrenSize() === 0) {
+			list.remove()
+		}
+		return replaceWithNode
+	}
 
-    // Split the lists and insert the node in between them
-    listNode.insertAfter(node, restoreSelection);
+	insertAfter(node: LexicalNode, restoreSelection = true): LexicalNode {
+		const listNode = this.getParentOrThrow()
 
-    if (siblings.length !== 0) {
-      const newListNode = $createListNode(listNode.getListType());
+		if (!$isListNode(listNode)) {
+			invariant(false, 'insertAfter: list node is not parent of list item node')
+		}
 
-      siblings.forEach((sibling) => newListNode.append(sibling));
+		if ($isListItemNode(node)) {
+			return super.insertAfter(node, restoreSelection)
+		}
 
-      node.insertAfter(newListNode, restoreSelection);
-    }
+		const siblings = this.getNextSiblings()
 
-    return node;
-  }
+		// Split the lists and insert the node in between them
+		listNode.insertAfter(node, restoreSelection)
 
-  remove(preserveEmptyParent?: boolean): void {
-    const prevSibling = this.getPreviousSibling();
-    const nextSibling = this.getNextSibling();
-    super.remove(preserveEmptyParent);
+		if (siblings.length !== 0) {
+			const newListNode = $createListNode(listNode.getListType())
 
-    if (
-      prevSibling &&
-      nextSibling &&
-      isNestedListNode(prevSibling) &&
-      isNestedListNode(nextSibling)
-    ) {
-      mergeLists(prevSibling.getFirstChild(), nextSibling.getFirstChild());
-      nextSibling.remove();
-    }
-  }
+			siblings.forEach(sibling => newListNode.append(sibling))
 
-  insertNewAfter(
-    _: RangeSelection,
-    restoreSelection = true,
-  ): ListItemNode | ParagraphNode {
-    const newElement = $createListItemNode(
-      this.__checked == null ? undefined : false,
-    );
-    this.insertAfter(newElement, restoreSelection);
+			node.insertAfter(newListNode, restoreSelection)
+		}
 
-    return newElement;
-  }
+		return node
+	}
 
-  collapseAtStart(selection: RangeSelection): true {
-    const paragraph = $createParagraphNode();
-    const children = this.getChildren();
-    children.forEach((child) => paragraph.append(child));
-    const listNode = this.getParentOrThrow();
-    const listNodeParent = listNode.getParentOrThrow();
-    const isIndented = $isListItemNode(listNodeParent);
+	remove(preserveEmptyParent?: boolean): void {
+		const prevSibling = this.getPreviousSibling()
+		const nextSibling = this.getNextSibling()
+		super.remove(preserveEmptyParent)
 
-    if (listNode.getChildrenSize() === 1) {
-      if (isIndented) {
-        // if the list node is nested, we just want to remove it,
-        // effectively unindenting it.
-        listNode.remove();
-        listNodeParent.select();
-      } else {
-        listNode.insertBefore(paragraph);
-        listNode.remove();
-        // If we have selection on the list item, we'll need to move it
-        // to the paragraph
-        const anchor = selection.anchor;
-        const focus = selection.focus;
-        const key = paragraph.getKey();
+		if (prevSibling && nextSibling && isNestedListNode(prevSibling) && isNestedListNode(nextSibling)) {
+			mergeLists(prevSibling.getFirstChild(), nextSibling.getFirstChild())
+			nextSibling.remove()
+		}
+	}
 
-        if (anchor.type === 'element' && anchor.getNode().is(this)) {
-          anchor.set(key, anchor.offset, 'element');
-        }
+	insertNewAfter(_: RangeSelection, restoreSelection = true): ListItemNode | ParagraphNode {
+		const newElement = $createListItemNode(this.__checked == null ? undefined : false)
+		this.insertAfter(newElement, restoreSelection)
 
-        if (focus.type === 'element' && focus.getNode().is(this)) {
-          focus.set(key, focus.offset, 'element');
-        }
-      }
-    } else {
-      listNode.insertBefore(paragraph);
-      this.remove();
-    }
+		return newElement
+	}
 
-    return true;
-  }
+	collapseAtStart(selection: RangeSelection): true {
+		const paragraph = $createParagraphNode()
+		const children = this.getChildren()
+		children.forEach(child => paragraph.append(child))
+		const listNode = this.getParentOrThrow()
+		const listNodeParent = listNode.getParentOrThrow()
+		const isIndented = $isListItemNode(listNodeParent)
 
-  getValue(): number {
-    const self = this.getLatest();
+		if (listNode.getChildrenSize() === 1) {
+			if (isIndented) {
+				// if the list node is nested, we just want to remove it,
+				// effectively unindenting it.
+				listNode.remove()
+				listNodeParent.select()
+			} else {
+				listNode.insertBefore(paragraph)
+				listNode.remove()
+				// If we have selection on the list item, we'll need to move it
+				// to the paragraph
+				const anchor = selection.anchor
+				const focus = selection.focus
+				const key = paragraph.getKey()
 
-    return self.__value;
-  }
+				if (anchor.type === 'element' && anchor.getNode().is(this)) {
+					anchor.set(key, anchor.offset, 'element')
+				}
 
-  setValue(value: number): void {
-    const self = this.getWritable();
-    self.__value = value;
-  }
+				if (focus.type === 'element' && focus.getNode().is(this)) {
+					focus.set(key, focus.offset, 'element')
+				}
+			}
+		} else {
+			listNode.insertBefore(paragraph)
+			this.remove()
+		}
 
-  getChecked(): boolean | undefined {
-    const self = this.getLatest();
+		return true
+	}
 
-    return self.__checked;
-  }
+	getValue(): number {
+		const self = this.getLatest()
 
-  setChecked(checked?: boolean): void {
-    const self = this.getWritable();
-    self.__checked = checked;
-  }
+		return self.__value
+	}
 
-  toggleChecked(): void {
-    this.setChecked(!this.__checked);
-  }
+	setValue(value: number): void {
+		const self = this.getWritable()
+		self.__value = value
+	}
 
-  getIndent(): number {
-    // If we don't have a parent, we are likely serializing
-    const parent = this.getParent();
-    if (parent === null) {
-      return this.getLatest().__indent;
-    }
-    // ListItemNode should always have a ListNode for a parent.
-    let listNodeParent = parent.getParentOrThrow();
-    let indentLevel = 0;
-    while ($isListItemNode(listNodeParent)) {
-      listNodeParent = listNodeParent.getParentOrThrow().getParentOrThrow();
-      indentLevel++;
-    }
+	getChecked(): boolean | undefined {
+		const self = this.getLatest()
 
-    return indentLevel;
-  }
+		return self.__checked
+	}
 
-  setIndent(indent: number): this {
-    invariant(
-      typeof indent === 'number' && indent > -1,
-      'Invalid indent value.',
-    );
-    let currentIndent = this.getIndent();
-    while (currentIndent !== indent) {
-      if (currentIndent < indent) {
-        $handleIndent(this);
-        currentIndent++;
-      } else {
-        $handleOutdent(this);
-        currentIndent--;
-      }
-    }
+	setChecked(checked?: boolean): void {
+		const self = this.getWritable()
+		self.__checked = checked
+	}
 
-    return this;
-  }
+	toggleChecked(): void {
+		this.setChecked(!this.__checked)
+	}
 
-  /** @deprecated @internal */
-  canInsertAfter(node: LexicalNode): boolean {
-    return $isListItemNode(node);
-  }
+	getIndent(): number {
+		// If we don't have a parent, we are likely serializing
+		const parent = this.getParent()
+		if (parent === null) {
+			return this.getLatest().__indent
+		}
+		// ListItemNode should always have a ListNode for a parent.
+		let listNodeParent = parent.getParentOrThrow()
+		let indentLevel = 0
+		while ($isListItemNode(listNodeParent)) {
+			listNodeParent = listNodeParent.getParentOrThrow().getParentOrThrow()
+			indentLevel++
+		}
 
-  /** @deprecated @internal */
-  canReplaceWith(replacement: LexicalNode): boolean {
-    return $isListItemNode(replacement);
-  }
+		return indentLevel
+	}
 
-  canMergeWith(node: LexicalNode): boolean {
-    return $isParagraphNode(node) || $isListItemNode(node);
-  }
+	setIndent(indent: number): this {
+		invariant(typeof indent === 'number' && indent > -1, 'Invalid indent value.')
+		let currentIndent = this.getIndent()
+		while (currentIndent !== indent) {
+			if (currentIndent < indent) {
+				$handleIndent(this)
+				currentIndent++
+			} else {
+				$handleOutdent(this)
+				currentIndent--
+			}
+		}
 
-  extractWithChild(child: LexicalNode, selection: BaseSelection): boolean {
-    if (!$isRangeSelection(selection)) {
-      return false;
-    }
+		return this
+	}
 
-    const anchorNode = selection.anchor.getNode();
-    const focusNode = selection.focus.getNode();
+	/** @deprecated @internal */
+	canInsertAfter(node: LexicalNode): boolean {
+		return $isListItemNode(node)
+	}
 
-    return (
-      this.isParentOf(anchorNode) &&
-      this.isParentOf(focusNode) &&
-      this.getTextContent().length === selection.getTextContent().length
-    );
-  }
+	/** @deprecated @internal */
+	canReplaceWith(replacement: LexicalNode): boolean {
+		return $isListItemNode(replacement)
+	}
 
-  isParentRequired(): true {
-    return true;
-  }
+	canMergeWith(node: LexicalNode): boolean {
+		return $isParagraphNode(node) || $isListItemNode(node)
+	}
 
-  createParentElementNode(): ElementNode {
-    return $createListNode('bullet');
-  }
+	extractWithChild(child: LexicalNode, selection: BaseSelection): boolean {
+		if (!$isRangeSelection(selection)) {
+			return false
+		}
+
+		const anchorNode = selection.anchor.getNode()
+		const focusNode = selection.focus.getNode()
+
+		return (
+			this.isParentOf(anchorNode) &&
+			this.isParentOf(focusNode) &&
+			this.getTextContent().length === selection.getTextContent().length
+		)
+	}
+
+	isParentRequired(): true {
+		return true
+	}
+
+	createParentElementNode(): ElementNode {
+		return $createListNode('bullet')
+	}
 }
 
 function $setListItemThemeClassNames(
-  dom: HTMLElement,
-  editorThemeClasses: EditorThemeClasses,
-  node: ListItemNode,
+	dom: HTMLElement,
+	editorThemeClasses: EditorThemeClasses,
+	node: ListItemNode
 ): void {
-  const classesToAdd = [];
-  const classesToRemove = [];
-  const listTheme = editorThemeClasses.list;
-  const listItemClassName = listTheme ? listTheme.listitem : undefined;
-  let nestedListItemClassName;
+	const classesToAdd = []
+	const classesToRemove = []
+	const listTheme = editorThemeClasses.list
+	const listItemClassName = listTheme ? listTheme.listitem : undefined
+	let nestedListItemClassName
 
-  if (listTheme && listTheme.nested) {
-    nestedListItemClassName = listTheme.nested.listitem;
-  }
+	if (listTheme && listTheme.nested) {
+		nestedListItemClassName = listTheme.nested.listitem
+	}
 
-  if (listItemClassName !== undefined) {
-    classesToAdd.push(...normalizeClassNames(listItemClassName));
-  }
+	if (listItemClassName !== undefined) {
+		classesToAdd.push(...normalizeClassNames(listItemClassName))
+	}
 
-  if (listTheme) {
-    const parentNode = node.getParent();
-    const isCheckList =
-      $isListNode(parentNode) && parentNode.getListType() === 'check';
-    const checked = node.getChecked();
+	if (listTheme) {
+		const parentNode = node.getParent()
+		const isCheckList = $isListNode(parentNode) && parentNode.getListType() === 'check'
+		const checked = node.getChecked()
 
-    if (!isCheckList || checked) {
-      classesToRemove.push(listTheme.listitemUnchecked);
-    }
+		if (!isCheckList || checked) {
+			classesToRemove.push(listTheme.listitemUnchecked)
+		}
 
-    if (!isCheckList || !checked) {
-      classesToRemove.push(listTheme.listitemChecked);
-    }
+		if (!isCheckList || !checked) {
+			classesToRemove.push(listTheme.listitemChecked)
+		}
 
-    if (isCheckList) {
-      classesToAdd.push(
-        checked ? listTheme.listitemChecked : listTheme.listitemUnchecked,
-      );
-    }
-  }
+		if (isCheckList) {
+			classesToAdd.push(checked ? listTheme.listitemChecked : listTheme.listitemUnchecked)
+		}
+	}
 
-  if (nestedListItemClassName !== undefined) {
-    const nestedListItemClasses = normalizeClassNames(nestedListItemClassName);
+	if (nestedListItemClassName !== undefined) {
+		const nestedListItemClasses = normalizeClassNames(nestedListItemClassName)
 
-    if (node.getChildren().some((child) => $isListNode(child))) {
-      classesToAdd.push(...nestedListItemClasses);
-    } else {
-      classesToRemove.push(...nestedListItemClasses);
-    }
-  }
+		if (node.getChildren().some(child => $isListNode(child))) {
+			classesToAdd.push(...nestedListItemClasses)
+		} else {
+			classesToRemove.push(...nestedListItemClasses)
+		}
+	}
 
-  if (classesToRemove.length > 0) {
-    removeClassNamesFromElement(dom, ...classesToRemove);
-  }
+	if (classesToRemove.length > 0) {
+		removeClassNamesFromElement(dom, ...classesToRemove)
+	}
 
-  if (classesToAdd.length > 0) {
-    addClassNamesToElement(dom, ...classesToAdd);
-  }
+	if (classesToAdd.length > 0) {
+		addClassNamesToElement(dom, ...classesToAdd)
+	}
 }
 
 function updateListItemChecked(
-  dom: HTMLElement,
-  listItemNode: ListItemNode,
-  prevListItemNode: ListItemNode | null,
-  listNode: ListNode,
+	dom: HTMLElement,
+	listItemNode: ListItemNode,
+	prevListItemNode: ListItemNode | null,
+	listNode: ListNode
 ): void {
-  // Only add attributes for leaf list items
-  if ($isListNode(listItemNode.getFirstChild())) {
-    dom.removeAttribute('role');
-    dom.removeAttribute('tabIndex');
-    dom.removeAttribute('aria-checked');
-  } else {
-    dom.setAttribute('role', 'checkbox');
-    dom.setAttribute('tabIndex', '-1');
+	// Only add attributes for leaf list items
+	if ($isListNode(listItemNode.getFirstChild())) {
+		dom.removeAttribute('role')
+		dom.removeAttribute('tabIndex')
+		dom.removeAttribute('aria-checked')
+	} else {
+		dom.setAttribute('role', 'checkbox')
+		dom.setAttribute('tabIndex', '-1')
 
-    if (
-      !prevListItemNode ||
-      listItemNode.__checked !== prevListItemNode.__checked
-    ) {
-      dom.setAttribute(
-        'aria-checked',
-        listItemNode.getChecked() ? 'true' : 'false',
-      );
-    }
-  }
+		if (!prevListItemNode || listItemNode.__checked !== prevListItemNode.__checked) {
+			dom.setAttribute('aria-checked', listItemNode.getChecked() ? 'true' : 'false')
+		}
+	}
 }
 
 function $convertListItemElement(domNode: HTMLElement): DOMConversionOutput {
-  const isGitHubCheckList = domNode.classList.contains('task-list-item');
-  if (isGitHubCheckList) {
-    for (const child of domNode.children) {
-      if (child.tagName === 'INPUT') {
-        return $convertCheckboxInput(child);
-      }
-    }
-  }
+	const isGitHubCheckList = domNode.classList.contains('task-list-item')
+	if (isGitHubCheckList) {
+		for (const child of domNode.children) {
+			if (child.tagName === 'INPUT') {
+				return $convertCheckboxInput(child)
+			}
+		}
+	}
 
-  const ariaCheckedAttr = domNode.getAttribute('aria-checked');
-  const checked =
-    ariaCheckedAttr === 'true'
-      ? true
-      : ariaCheckedAttr === 'false'
-      ? false
-      : undefined;
-  return {node: $createListItemNode(checked)};
+	const ariaCheckedAttr = domNode.getAttribute('aria-checked')
+	const checked = ariaCheckedAttr === 'true' ? true : ariaCheckedAttr === 'false' ? false : undefined
+	return { node: $createListItemNode(checked) }
 }
 
 function $convertCheckboxInput(domNode: Element): DOMConversionOutput {
-  const isCheckboxInput = domNode.getAttribute('type') === 'checkbox';
-  if (!isCheckboxInput) {
-    return {node: null};
-  }
-  const checked = domNode.hasAttribute('checked');
-  return {node: $createListItemNode(checked)};
+	const isCheckboxInput = domNode.getAttribute('type') === 'checkbox'
+	if (!isCheckboxInput) {
+		return { node: null }
+	}
+	const checked = domNode.hasAttribute('checked')
+	return { node: $createListItemNode(checked) }
 }
 
 /**
@@ -526,8 +490,8 @@ function $convertCheckboxInput(domNode: Element): DOMConversionOutput {
  * @param checked - Is the List Item a checkbox and, if so, is it checked? undefined/null: not a checkbox, true/false is a checkbox and checked/unchecked, respectively.
  * @returns The new List Item.
  */
-export function $createListItemNode(checked?: boolean): ListItemNode {
-  return $applyNodeReplacement(new ListItemNode(undefined, checked));
+export function $createListItemNode(checked?: boolean, key?: string): ListItemNode {
+	return $applyNodeReplacement(new ListItemNode(undefined, checked, key))
 }
 
 /**
@@ -535,8 +499,6 @@ export function $createListItemNode(checked?: boolean): ListItemNode {
  * @param node - The node to be checked.
  * @returns true if the node is a ListItemNode, false otherwise.
  */
-export function $isListItemNode(
-  node: LexicalNode | null | undefined,
-): node is ListItemNode {
-  return node instanceof ListItemNode;
+export function $isListItemNode(node: LexicalNode | null | undefined): node is ListItemNode {
+	return node instanceof ListItemNode
 }

@@ -6,88 +6,84 @@
  *
  */
 
-import type {DOMConversionMap, NodeKey} from '../LexicalNode';
+import type { DOMConversionMap, NodeKey } from '../LexicalNode'
 
-import invariant from 'shared/invariant';
+import invariant from 'shared/invariant'
 
-import {IS_UNMERGEABLE} from '../LexicalConstants';
-import {LexicalNode} from '../LexicalNode';
-import {$applyNodeReplacement} from '../LexicalUtils';
-import {
-  SerializedTextNode,
-  TextDetailType,
-  TextModeType,
-  TextNode,
-} from './LexicalTextNode';
-
-export type SerializedTabNode = SerializedTextNode;
+import { IS_UNMERGEABLE } from '../LexicalConstants'
+import { LexicalNode } from '../LexicalNode'
+import { $applyNodeReplacement, $setImportNode } from '../LexicalUtils'
+import { SerializedTextNode, TextDetailType, TextModeType, TextNode } from './LexicalTextNode'
 
 /** @noInheritDoc */
 export class TabNode extends TextNode {
-  static getType(): string {
-    return 'tab';
-  }
+	static getType(): string {
+		return 'tab'
+	}
 
-  static clone(node: TabNode): TabNode {
-    const newNode = new TabNode(node.__key);
-    // TabNode __text can be either '\t' or ''. insertText will remove the empty Node
-    newNode.__text = node.__text;
-    newNode.__format = node.__format;
-    newNode.__style = node.__style;
-    return newNode;
-  }
+	static clone(node: TabNode): TabNode {
+		const newNode = new TabNode(node.__key)
+		// TabNode __text can be either '\t' or ''. insertText will remove the empty Node
+		newNode.__text = node.__text
+		newNode.__format = node.__format
+		newNode.__style = node.__style
 
-  constructor(key?: NodeKey) {
-    super('\t', key);
-    this.__detail = IS_UNMERGEABLE;
-  }
+		return newNode
+	}
 
-  static importDOM(): DOMConversionMap | null {
-    return null;
-  }
+	constructor(key?: NodeKey) {
+		super('\t', key)
+		this.__detail = IS_UNMERGEABLE
+	}
 
-  static importJSON(serializedTabNode: SerializedTabNode): TabNode {
-    const node = $createTabNode();
-    node.setFormat(serializedTabNode.format);
-    node.setStyle(serializedTabNode.style);
-    return node;
-  }
+	static importDOM(): DOMConversionMap | null {
+		return null
+	}
 
-  exportJSON(): SerializedTabNode {
-    return {
-      ...super.exportJSON(),
-      type: 'tab',
-      version: 1,
-    };
-  }
+	static importJSON(serializedNode: SerializedTextNode, update?: boolean): TabNode {
+		const node = $createTabNode(serializedNode.key)
 
-  setTextContent(_text: string): this {
-    invariant(false, 'TabNode does not support setTextContent');
-  }
+		if (!update) $setImportNode(serializedNode.key!, node)
 
-  setDetail(_detail: TextDetailType | number): this {
-    invariant(false, 'TabNode does not support setDetail');
-  }
+		node.setFormat(serializedNode.format)
+		node.setStyle(serializedNode.style)
 
-  setMode(_type: TextModeType): this {
-    invariant(false, 'TabNode does not support setMode');
-  }
+		return node
+	}
 
-  canInsertTextBefore(): boolean {
-    return false;
-  }
+	exportJSON(): SerializedTextNode {
+		return {
+			...super.exportJSON(),
+			type: 'tab',
+			version: 1
+		}
+	}
 
-  canInsertTextAfter(): boolean {
-    return false;
-  }
+	setTextContent(_text: string): this {
+		invariant(false, 'TabNode does not support setTextContent')
+	}
+
+	setDetail(_detail: TextDetailType | number): this {
+		invariant(false, 'TabNode does not support setDetail')
+	}
+
+	setMode(_type: TextModeType): this {
+		invariant(false, 'TabNode does not support setMode')
+	}
+
+	canInsertTextBefore(): boolean {
+		return false
+	}
+
+	canInsertTextAfter(): boolean {
+		return false
+	}
 }
 
-export function $createTabNode(): TabNode {
-  return $applyNodeReplacement(new TabNode());
+export function $createTabNode(key?: string): TabNode {
+	return $applyNodeReplacement(new TabNode(key))
 }
 
-export function $isTabNode(
-  node: LexicalNode | null | undefined,
-): node is TabNode {
-  return node instanceof TabNode;
+export function $isTabNode(node: LexicalNode | null | undefined): node is TabNode {
+	return node instanceof TabNode
 }

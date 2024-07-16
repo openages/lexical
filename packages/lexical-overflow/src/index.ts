@@ -6,80 +6,71 @@
  *
  */
 
-import type {
-  EditorConfig,
-  LexicalNode,
-  NodeKey,
-  RangeSelection,
-  SerializedElementNode,
-} from 'lexical';
+import type { EditorConfig, LexicalNode, NodeKey, RangeSelection, SerializedElementNode } from 'lexical'
 
-import {$applyNodeReplacement, ElementNode} from 'lexical';
-
-export type SerializedOverflowNode = SerializedElementNode;
+import { $applyNodeReplacement, $setImportNode, ElementNode } from 'lexical'
 
 /** @noInheritDoc */
 export class OverflowNode extends ElementNode {
-  static getType(): string {
-    return 'overflow';
-  }
+	constructor(key?: NodeKey) {
+		super(key)
+		this.__type = 'overflow'
+	}
 
-  static clone(node: OverflowNode): OverflowNode {
-    return new OverflowNode(node.__key);
-  }
+	static getType(): string {
+		return 'overflow'
+	}
 
-  static importJSON(serializedNode: SerializedOverflowNode): OverflowNode {
-    return $createOverflowNode();
-  }
+	static clone(node: OverflowNode): OverflowNode {
+		return new OverflowNode(node.__key)
+	}
 
-  static importDOM(): null {
-    return null;
-  }
+	static importJSON(serializedNode: SerializedElementNode, update?: boolean): OverflowNode {
+		const node = $createOverflowNode(serializedNode.key)
 
-  constructor(key?: NodeKey) {
-    super(key);
-    this.__type = 'overflow';
-  }
+		if (!update) $setImportNode(serializedNode.key, node)
 
-  exportJSON(): SerializedElementNode {
-    return {
-      ...super.exportJSON(),
-      type: 'overflow',
-    };
-  }
+		return node
+	}
 
-  createDOM(config: EditorConfig): HTMLElement {
-    const div = document.createElement('span');
-    const className = config.theme.characterLimit;
-    if (typeof className === 'string') {
-      div.className = className;
-    }
-    return div;
-  }
+	static importDOM(): null {
+		return null
+	}
 
-  updateDOM(prevNode: OverflowNode, dom: HTMLElement): boolean {
-    return false;
-  }
+	exportJSON(): SerializedElementNode {
+		return {
+			...super.exportJSON(),
+			type: 'overflow'
+		}
+	}
 
-  insertNewAfter(
-    selection: RangeSelection,
-    restoreSelection = true,
-  ): null | LexicalNode {
-    const parent = this.getParentOrThrow();
-    return parent.insertNewAfter(selection, restoreSelection);
-  }
+	createDOM(config: EditorConfig): HTMLElement {
+		const div = document.createElement('span')
+		const className = config.theme.characterLimit
+		if (typeof className === 'string') {
+			div.className = className
+		}
+		return div
+	}
 
-  excludeFromCopy(): boolean {
-    return true;
-  }
+	updateDOM(prevNode: OverflowNode, dom: HTMLElement): boolean {
+		return false
+	}
+
+	insertNewAfter(selection: RangeSelection, restoreSelection = true): null | LexicalNode {
+		const parent = this.getParentOrThrow()
+		return parent.insertNewAfter(selection, restoreSelection)
+	}
+
+	excludeFromCopy(): boolean {
+		return true
+	}
 }
 
-export function $createOverflowNode(): OverflowNode {
-  return $applyNodeReplacement(new OverflowNode());
+export function $createOverflowNode(key?: string): OverflowNode {
+	return $applyNodeReplacement(new OverflowNode(key))
 }
 
-export function $isOverflowNode(
-  node: LexicalNode | null | undefined,
-): node is OverflowNode {
-  return node instanceof OverflowNode;
+export function $isOverflowNode(node: LexicalNode | null | undefined): node is OverflowNode {
+	return node instanceof OverflowNode
 }

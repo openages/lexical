@@ -111,10 +111,10 @@ export class ParagraphNode extends ElementNode {
 		}
 	}
 
-	static importJSON(serializedNode: SerializedParagraphNode): ParagraphNode {
+	static importJSON(serializedNode: SerializedParagraphNode, update?: boolean): ParagraphNode {
 		const node = $createParagraphNode(serializedNode.key)
 
-		$setImportNode(serializedNode.key, node)
+		if (!update) $setImportNode(serializedNode.key, node)
 
 		node.setFormat(serializedNode.format)
 		node.setIndent(serializedNode.indent)

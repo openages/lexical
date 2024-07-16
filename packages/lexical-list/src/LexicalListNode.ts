@@ -137,10 +137,10 @@ export class ListNode extends ElementNode {
 		}
 	}
 
-	static importJSON(serializedNode: SerializedListNode): ListNode {
+	static importJSON(serializedNode: SerializedListNode, update?: boolean): ListNode {
 		const node = $createListNode(serializedNode.listType, serializedNode.start, serializedNode.key)
 
-		$setImportNode(serializedNode.key, node)
+		if (!update) $setImportNode(serializedNode.key, node)
 
 		node.setFormat(serializedNode.format)
 		node.setIndent(serializedNode.indent)

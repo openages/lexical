@@ -756,7 +756,7 @@ export class LexicalNode {
 	 * See [Serialization & Deserialization](https://lexical.dev/docs/concepts/serialization#lexical---html).
 	 *
 	 * */
-	static importJSON(_serializedNode: SerializedLexicalNode): LexicalNode {
+	static importJSON(_serializedNode: SerializedLexicalNode, _update?: boolean): LexicalNode {
 		invariant(false, 'LexicalNode: Node %s does not implement .importJSON().', this.name)
 	}
 	/**
