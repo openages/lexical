@@ -112,8 +112,8 @@ export class HeadingNode extends ElementNode {
 		return 'heading'
 	}
 
-	static clone(node: HeadingNode): HeadingNode {
-		return new HeadingNode(node.__tag, node.__key)
+	static clone(node: HeadingNode, new_key?: boolean): HeadingNode {
+		return new HeadingNode(node.__tag, new_key ? undefined : node.__key)
 	}
 
 	constructor(tag: HeadingTagType, key?: NodeKey) {

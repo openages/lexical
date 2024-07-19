@@ -65,8 +65,12 @@ export class LinkNode extends ElementNode {
 		return 'link'
 	}
 
-	static clone(node: LinkNode): LinkNode {
-		return new LinkNode(node.__url, { rel: node.__rel, target: node.__target, title: node.__title }, node.__key)
+	static clone(node: LinkNode, new_key?: boolean): LinkNode {
+		return new LinkNode(
+			node.__url,
+			{ rel: node.__rel, target: node.__target, title: node.__title },
+			new_key ? undefined : node.__key
+		)
 	}
 
 	constructor(url: string, attributes: LinkAttributes = {}, key?: NodeKey) {
@@ -316,7 +320,7 @@ export class AutoLinkNode extends LinkNode {
 		return 'autolink'
 	}
 
-	static clone(node: AutoLinkNode): AutoLinkNode {
+	static clone(node: AutoLinkNode, new_key?: boolean): AutoLinkNode {
 		return new AutoLinkNode(
 			node.__url,
 			{
@@ -325,7 +329,7 @@ export class AutoLinkNode extends LinkNode {
 				target: node.__target,
 				title: node.__title
 			},
-			node.__key
+			new_key ? undefined : node.__key
 		)
 	}
 

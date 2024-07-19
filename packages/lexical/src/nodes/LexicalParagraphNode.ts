@@ -55,8 +55,8 @@ export class ParagraphNode extends ElementNode {
 		return (this.getTextFormat() & formatFlag) !== 0
 	}
 
-	static clone(node: ParagraphNode): ParagraphNode {
-		return new ParagraphNode(node.__key)
+	static clone(node: ParagraphNode, new_key?: boolean): ParagraphNode {
+		return new ParagraphNode(new_key ? undefined : node.__key)
 	}
 
 	// View

@@ -21,8 +21,8 @@ export class TabNode extends TextNode {
 		return 'tab'
 	}
 
-	static clone(node: TabNode): TabNode {
-		const newNode = new TabNode(node.__key)
+	static clone(node: TabNode, new_key?: boolean): TabNode {
+		const newNode = new TabNode(new_key ? undefined : node.__key)
 		// TabNode __text can be either '\t' or ''. insertText will remove the empty Node
 		newNode.__text = node.__text
 		newNode.__format = node.__format

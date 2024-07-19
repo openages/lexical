@@ -165,7 +165,7 @@ export class LexicalNode {
 	 * implement this method.
 	 *
 	 */
-	static clone(_data: unknown): LexicalNode {
+	static clone(_data: unknown, _new_key?: boolean): LexicalNode {
 		invariant(false, 'LexicalNode: Node %s does not implement .clone().', this.name)
 	}
 

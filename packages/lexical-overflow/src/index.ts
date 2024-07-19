@@ -21,8 +21,8 @@ export class OverflowNode extends ElementNode {
 		return 'overflow'
 	}
 
-	static clone(node: OverflowNode): OverflowNode {
-		return new OverflowNode(node.__key)
+	static clone(node: OverflowNode, new_key?: boolean): OverflowNode {
+		return new OverflowNode(new_key ? undefined : node.__key)
 	}
 
 	static importJSON(serializedNode: SerializedElementNode, update?: boolean): OverflowNode {

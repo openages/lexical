@@ -244,7 +244,12 @@ function $appendNodesToJSON(
 
 	if (selection !== null) {
 		let clone = $cloneWithProperties<LexicalNode>(currentNode)
-		clone = $isTextNode(clone) && selection !== null ? $sliceSelectedTextNodeContent(selection, clone) : clone
+
+		clone = $cloneWithProperties(
+			$isTextNode(clone) && selection !== null ? $sliceSelectedTextNodeContent(selection, clone) : clone,
+			true
+		)
+
 		target = clone
 	}
 	const children = $isElementNode(target) ? target.getChildren() : []

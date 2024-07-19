@@ -60,8 +60,8 @@ export class ListItemNode extends ElementNode {
 		return 'listitem'
 	}
 
-	static clone(node: ListItemNode): ListItemNode {
-		return new ListItemNode(node.__value, node.__checked, node.__key)
+	static clone(node: ListItemNode, new_key?: boolean): ListItemNode {
+		return new ListItemNode(node.__value, node.__checked, new_key ? undefined : node.__key)
 	}
 
 	constructor(value?: number, checked?: boolean, key?: NodeKey) {

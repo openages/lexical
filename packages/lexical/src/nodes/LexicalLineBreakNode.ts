@@ -20,8 +20,8 @@ export class LineBreakNode extends LexicalNode {
 		return 'linebreak'
 	}
 
-	static clone(node: LineBreakNode): LineBreakNode {
-		return new LineBreakNode(node.__key)
+	static clone(node: LineBreakNode, new_key?: boolean): LineBreakNode {
+		return new LineBreakNode(new_key ? undefined : node.__key)
 	}
 
 	constructor(key?: NodeKey) {

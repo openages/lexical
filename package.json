@@ -6,6 +6,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"pack": "bun build.rollup.ts && bun build.dts.ts",
 		"build": "bun build.rollup.ts",
 		"dts": "bun build.dts.ts",
 		"rspack": "node --import @swc-node/register/esm-register build.rspack.ts",
