@@ -7,7 +7,9 @@
  */
 
 import {
+	$createParagraphNode,
 	$createTabNode,
+	$createTextNode,
 	$getRoot,
 	$getSelection,
 	$isElementNode,
@@ -28,6 +30,8 @@ import { CAN_USE_DOM } from 'shared/canUseDOM'
 import invariant from 'shared/invariant'
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html'
+import { $isListNode } from '@lexical/list'
+import { $isHeadingNode } from '@lexical/rich-text'
 import { $addNodeStyle, $cloneWithProperties, $sliceSelectedTextNodeContent } from '@lexical/selection'
 import { objectKlassEquals } from '@lexical/utils'
 
@@ -98,6 +102,19 @@ export function $insertDataTransferForPlainText(dataTransfer: DataTransfer, sele
 	}
 }
 
+function getTextModeNodes(nodes: Array<LexicalNode>) {
+	return nodes.map(node => {
+		if ($isListNode(node) || $isHeadingNode(node)) {
+			const p = $createParagraphNode()
+			const text = $createTextNode(node.getTextContent())
+
+			return p.append(text)
+		}
+
+		return node
+	})
+}
+
 /**
  * Attempts to insert content of the mime-types application/x-lexical-editor, text/html,
  * text/plain, or text/uri-list (in descending order of priority) from the provided DataTransfer
@@ -110,7 +127,8 @@ export function $insertDataTransferForPlainText(dataTransfer: DataTransfer, sele
 export function $insertDataTransferForRichText(
 	dataTransfer: DataTransfer,
 	selection: BaseSelection,
-	editor: LexicalEditor
+	editor: LexicalEditor,
+	text_mode?: boolean
 ): void {
 	const lexicalString = dataTransfer.getData('application/x-lexical-editor')
 
@@ -118,7 +136,9 @@ export function $insertDataTransferForRichText(
 		try {
 			const payload = JSON.parse(lexicalString)
 			if (payload.namespace === editor._config.namespace && Array.isArray(payload.nodes)) {
-				const nodes = $generateNodesFromSerializedNodes(payload.nodes)
+				let nodes = $generateNodesFromSerializedNodes(payload.nodes)
+
+				if (text_mode) nodes = getTextModeNodes(nodes)
 
 				return $insertGeneratedNodes(editor, nodes, selection)
 			}
@@ -133,7 +153,9 @@ export function $insertDataTransferForRichText(
 		try {
 			const parser = new DOMParser()
 			const dom = parser.parseFromString(htmlString, 'text/html')
-			const nodes = $generateNodesFromDOM(editor, dom)
+			let nodes = $generateNodesFromDOM(editor, dom)
+
+			if (text_mode) nodes = getTextModeNodes(nodes)
 
 			return $insertGeneratedNodes(editor, nodes, selection)
 		} catch {
@@ -162,7 +184,7 @@ export function $insertDataTransferForRichText(
 					const prev_part = parts.at(i - 1)
 
 					if (part === '\n' || part === '\r\n') {
-						if (prev_part && prev_part != '\n' && prev_part != '\r\n') {
+						if (!text_mode && prev_part && prev_part != '\n' && prev_part != '\r\n') {
 							currentSelection.insertParagraph()
 						}
 					} else if (part === '\t') {

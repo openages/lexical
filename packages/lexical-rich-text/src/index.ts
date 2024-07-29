@@ -305,7 +305,11 @@ export function $isHeadingNode(node: LexicalNode | null | undefined): node is He
 	return node instanceof HeadingNode
 }
 
-function onPasteForRichText(event: CommandPayloadType<typeof PASTE_COMMAND>, editor: LexicalEditor): void {
+function onPasteForRichText(
+	event: CommandPayloadType<typeof PASTE_COMMAND>,
+	editor: LexicalEditor,
+	text_mode?: boolean
+): void {
 	event.preventDefault()
 	editor.update(
 		() => {
@@ -315,7 +319,7 @@ function onPasteForRichText(event: CommandPayloadType<typeof PASTE_COMMAND>, edi
 					? null
 					: (event as ClipboardEvent).clipboardData
 			if (clipboardData != null && selection !== null) {
-				$insertDataTransferForRichText(clipboardData, selection, editor)
+				$insertDataTransferForRichText(clipboardData, selection, editor, text_mode)
 			}
 		},
 		{
@@ -396,7 +400,7 @@ function $isSelectionAtEndOfRoot(selection: RangeSelection) {
 	return focus.key === 'root' && focus.offset === $getRoot().getChildrenSize()
 }
 
-export function registerRichText(editor: LexicalEditor): () => void {
+export function registerRichText(editor: LexicalEditor, text_mode?: boolean): () => void {
 	const removeListener = mergeRegister(
 		editor.registerCommand(
 			CLICK_COMMAND,
@@ -462,7 +466,7 @@ export function registerRichText(editor: LexicalEditor): () => void {
 
 					const dataTransfer = eventOrText.dataTransfer
 					if (dataTransfer != null) {
-						$insertDataTransferForRichText(dataTransfer, selection, editor)
+						$insertDataTransferForRichText(dataTransfer, selection, editor, text_mode)
 					} else if ($isRangeSelection(selection)) {
 						const data = eventOrText.data
 						if (data) {
@@ -888,7 +892,7 @@ export function registerRichText(editor: LexicalEditor): () => void {
 
 				const selection = $getSelection()
 				if (selection !== null) {
-					onPasteForRichText(event, editor)
+					onPasteForRichText(event, editor, text_mode)
 					return true
 				}
 

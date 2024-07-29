@@ -6,57 +6,58 @@
  *
  */
 
-import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
-import {useLexicalEditable} from '@lexical/react/useLexicalEditable';
-import * as React from 'react';
+import * as React from 'react'
 
-import {useCanShowPlaceholder} from './shared/useCanShowPlaceholder';
-import {ErrorBoundaryType, useDecorators} from './shared/useDecorators';
-import {useRichTextSetup} from './shared/useRichTextSetup';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import { useLexicalEditable } from '@lexical/react/useLexicalEditable'
+
+import { useCanShowPlaceholder } from './shared/useCanShowPlaceholder'
+import { useDecorators, ErrorBoundaryType } from './shared/useDecorators'
+import { useRichTextSetup } from './shared/useRichTextSetup'
 
 export function RichTextPlugin({
-  contentEditable,
-  // TODO Remove. This property is now part of ContentEditable
-  placeholder = null,
-  ErrorBoundary,
+	contentEditable,
+	// TODO Remove. This property is now part of ContentEditable
+	placeholder = null,
+	ErrorBoundary,
+	text_mode
 }: {
-  contentEditable: JSX.Element;
-  placeholder?:
-    | ((isEditable: boolean) => null | JSX.Element)
-    | null
-    | JSX.Element;
-  ErrorBoundary: ErrorBoundaryType;
+	contentEditable: JSX.Element
+	placeholder?: ((isEditable: boolean) => null | JSX.Element) | null | JSX.Element
+	ErrorBoundary: ErrorBoundaryType
+	text_mode?: boolean
 }): JSX.Element {
-  const [editor] = useLexicalComposerContext();
-  const decorators = useDecorators(editor, ErrorBoundary);
-  useRichTextSetup(editor);
+	const [editor] = useLexicalComposerContext()
+	const decorators = useDecorators(editor, ErrorBoundary)
 
-  return (
-    <>
-      {contentEditable}
-      <Placeholder content={placeholder} />
-      {decorators}
-    </>
-  );
+	useRichTextSetup(editor, text_mode)
+
+	return (
+		<>
+			{contentEditable}
+			<Placeholder content={placeholder} />
+			{decorators}
+		</>
+	)
 }
 
 // TODO remove
 function Placeholder({
-  content,
+	content
 }: {
-  content: ((isEditable: boolean) => null | JSX.Element) | null | JSX.Element;
+	content: ((isEditable: boolean) => null | JSX.Element) | null | JSX.Element
 }): null | JSX.Element {
-  const [editor] = useLexicalComposerContext();
-  const showPlaceholder = useCanShowPlaceholder(editor);
-  const editable = useLexicalEditable();
+	const [editor] = useLexicalComposerContext()
+	const showPlaceholder = useCanShowPlaceholder(editor)
+	const editable = useLexicalEditable()
 
-  if (!showPlaceholder) {
-    return null;
-  }
+	if (!showPlaceholder) {
+		return null
+	}
 
-  if (typeof content === 'function') {
-    return content(editable);
-  } else {
-    return content;
-  }
+	if (typeof content === 'function') {
+		return content(editable)
+	} else {
+		return content
+	}
 }

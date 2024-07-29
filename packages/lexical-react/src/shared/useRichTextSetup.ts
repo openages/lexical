@@ -6,20 +6,15 @@
  *
  */
 
-import type {LexicalEditor} from 'lexical';
+import type { LexicalEditor } from 'lexical'
 
 import useLayoutEffect from 'shared/useLayoutEffect'
 
 import { registerRichText } from '@lexical/rich-text'
 import { mergeRegister } from '@lexical/utils'
 
-export function useRichTextSetup(editor: LexicalEditor): void {
-  useLayoutEffect(() => {
-    return mergeRegister(
-      registerRichText(editor),
-    );
-
-    // We only do this for init
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
+export function useRichTextSetup(editor: LexicalEditor, text_mode?: boolean): void {
+	useLayoutEffect(() => {
+		return mergeRegister(registerRichText(editor, text_mode))
+	}, [editor])
 }
