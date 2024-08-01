@@ -15,6 +15,7 @@ import type {
 	SerializedLexicalNode
 } from '../LexicalNode'
 import type { BaseSelection, RangeSelection } from '../LexicalSelection'
+import type { ElementNode } from './LexicalElementNode'
 
 import { IS_FIREFOX } from 'shared/environment'
 import invariant from 'shared/invariant'
@@ -91,6 +92,11 @@ export type TextModeType = 'normal' | 'token' | 'segmented'
 export type TextMark = { end: null | number; id: string; start: null | number }
 
 export type TextMarks = Array<TextMark>
+
+export interface TextNode {
+	getTopLevelElement(): ElementNode | null
+	getTopLevelElementOrThrow(): ElementNode
+}
 
 function getElementOuterTag(node: TextNode, format: number): string | null {
 	if (format & IS_CODE) {

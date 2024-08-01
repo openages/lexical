@@ -9,11 +9,19 @@
 /* eslint-disable no-constant-condition */
 import type { EditorConfig, LexicalEditor } from './LexicalEditor'
 import type { BaseSelection, RangeSelection } from './LexicalSelection'
-import type { Klass, KlassConstructor } from 'lexical'
+import type { Klass, KlassConstructor, DecoratorNode } from 'lexical'
 
 import invariant from 'shared/invariant'
 
-import { $createParagraphNode, $isElementNode, $isParagraphNode, $isRootNode, $isTextNode, ElementNode } from './'
+import {
+	$createParagraphNode,
+	$isDecoratorNode,
+	$isElementNode,
+	$isParagraphNode,
+	$isRootNode,
+	$isTextNode,
+	ElementNode
+} from './'
 import {
 	$getSelection,
 	$isNodeSelection,
@@ -308,16 +316,24 @@ export class LexicalNode {
 	 * non-root ancestor of this node, or null if none is found. See {@link lexical!$isRootOrShadowRoot}
 	 * for more information on which Elements comprise "roots".
 	 */
-	getTopLevelElement(): ElementNode | null {
+	getTopLevelElement(): ElementNode | DecoratorNode<unknown> | null {
 		let node: ElementNode | this | null = this
+
 		while (node !== null) {
 			const parent: ElementNode | null = node.getParent()
+
 			if ($isRootOrShadowRoot(parent)) {
-				invariant($isElementNode(node), 'Children of root nodes must be elements')
+				invariant(
+					$isElementNode(node) || (node === this && $isDecoratorNode(node)),
+					'Children of root nodes must be elements'
+				)
+
 				return node
 			}
+
 			node = parent
 		}
+
 		return null
 	}
 
@@ -326,11 +342,13 @@ export class LexicalNode {
 	 * non-root ancestor of this node, or throws if none is found. See {@link lexical!$isRootOrShadowRoot}
 	 * for more information on which Elements comprise "roots".
 	 */
-	getTopLevelElementOrThrow(): ElementNode {
+	getTopLevelElementOrThrow(): ElementNode | DecoratorNode<unknown> {
 		const parent = this.getTopLevelElement()
+
 		if (parent === null) {
 			invariant(false, 'Expected node %s to have a top parent element.', this.__key)
 		}
+
 		return parent
 	}
 
@@ -1066,6 +1084,7 @@ export function insertRangeAfter(node: LexicalNode, firstToInsert: LexicalNode, 
 	const lastToInsert2 = lastToInsert || firstToInsert.getParentOrThrow().getLastChild()!
 	let current = firstToInsert
 	const nodesToInsert = [firstToInsert]
+
 	while (current !== lastToInsert2) {
 		if (!current.getNextSibling()) {
 			invariant(false, 'insertRangeAfter: lastToInsert must be a later sibling of firstToInsert')

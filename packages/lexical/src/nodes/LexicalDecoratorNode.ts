@@ -8,11 +8,17 @@
 
 import type { KlassConstructor, LexicalEditor } from '../LexicalEditor'
 import type { NodeKey } from '../LexicalNode'
+import type { ElementNode } from './LexicalElementNode'
 
 import { EditorConfig } from 'lexical'
 import invariant from 'shared/invariant'
 
 import { LexicalNode } from '../LexicalNode'
+
+export interface DecoratorNode<T> {
+	getTopLevelElement(): ElementNode | this | null
+	getTopLevelElementOrThrow(): ElementNode | this
+}
 
 /** @noInheritDoc */
 export class DecoratorNode<T> extends LexicalNode {
